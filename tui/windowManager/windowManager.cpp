@@ -4,37 +4,45 @@
 WindowManager::WindowManager()
 {
     return;
+    isUpdateNeeded = true;
+    refresh();
 }
 
 
 WindowManager::WindowManager(int posY, int posX, int sizeY, int sizeX)
 {
-    parentP = NULL;
-    baseWinP = newwin(sizeY, sizeX, posY, posX);
+    parentP         = NULL;
+    baseWinP        = newwin(sizeY, sizeX, posY, posX);
+    refresh();
 }
 
 
 WindowManager::WindowManager(WINDOW* baseP)
 {
-    baseWinP = baseP;
+    baseWinP        = baseP;
+    refresh();
 }
 
 
 WindowManager::~WindowManager()
 {
     clearChildren();
-    refresh();
 
     if(baseWinP != stdscr)
     {
         wclear(baseWinP);
         wrefresh(baseWinP);
+        
         delwin(baseWinP);
     }
     else
     {
+        //end ncurses when stdscr is destructed
         endwin();
     }
+    
+    refresh();
+
     
 }
 
@@ -47,28 +55,32 @@ void WindowManager::addStyle()
 
 void WindowManager::updateWindows()
 {
-	updateWindows(true);	
+	if(updateWindows(false))
+    {
+        fprintf(stderr, "\nrefresh");
+        refresh();
+    }	
 }
 
-void WindowManager::updateWindows(bool isRefreshNeeded)
+
+bool WindowManager::updateWindows(bool isRefreshNeeded)
 {
 
-	//if(isUpdateNeeded)
-	//{
+	if(isUpdateNeeded)
+	{
+        isUpdateNeeded  = false;
+        isRefreshNeeded = true;
 		wrefresh(baseWinP);
-	//}
 
-	unsigned int i;
-
-	for(i = 0; i < childList.size(); i++)
-	{
-		childList[i]->updateWindows(false);
+        //If this window is refreshed, do all child windows need be refreshed, in order to maintain properz-index of windows?
 	}
 
-	if(isRefreshNeeded)
+	for(unsigned int i = 0; i < childList.size(); i++)
 	{
-		refresh();
+		isRefreshNeeded |= childList[i]->updateWindows(false);
 	}
+
+	return isRefreshNeeded;
 }
 
 
@@ -87,6 +99,8 @@ void WindowManager::clear()
 {
     clearChildren();
     wclear(baseWinP);
+
+    isUpdateNeeded = true;
 }
 
 
@@ -100,8 +114,9 @@ void WindowManager::clearChildren()
     }
 
     childList.clear();
-}
 
+    isUpdateNeeded = true;
+}
 
 
 void WindowManager::appendChildren(WindowManager** childListP, int num)
@@ -111,6 +126,7 @@ void WindowManager::appendChildren(WindowManager** childListP, int num)
         appendChild(childListP[i]);
     }
 }
+
 
 void WindowManager::appendChild(WindowManager* childP)
 {
@@ -194,11 +210,124 @@ int WindowManager::x()
 
 void WindowManager::printCenter(std::string msg)
 {
-    unsigned int maxY, maxX;
 
-    getmaxyx(baseWinP, maxY, maxX);
-
-    wmove(baseWinP, maxY/2, (maxX - msg.length())/2);
+    wmove(baseWinP, height()/2, (width() - msg.length())/2);
 
     wprintw(baseWinP, msg.c_str());
+
+    isUpdateNeeded = true;
+}
+
+
+void WindowManager::print(std::string msg)
+{
+    wprintw(baseWinP, msg.c_str());
+
+    isUpdateNeeded = true;
+}
+
+
+int WindowManager::cursorX()
+{
+    return getcurx(baseWinP);
+}
+
+
+int WindowManager::cursorY()
+{
+    return getcury(baseWinP);
+}
+
+
+void WindowManager::addChar(const chtype ch)
+{
+    waddch(baseWinP, ch);
+    wrefresh(baseWinP);
+    refresh();
+    isUpdateNeeded = true;
+}
+
+
+void WindowManager::removeChar()
+{
+    moveCursor(-1);
+    addChar(' ');
+    moveCursor(-1);
+    isUpdateNeeded = true;
+}
+
+void WindowManager::removeChar(int y, int x)
+{
+    moveCursor(y, x);
+    addChar(' '); 
+    isUpdateNeeded = true;
+}
+
+
+void WindowManager::moveCursor(int abs)
+{
+    wmove(baseWinP, cursorY(), cursorX() + abs);
+}
+
+void WindowManager::moveCursor(int y, int x)
+{
+    wmove(baseWinP, y, x);
+}
+
+
+/**
+ * @brief create a simple border around the window
+ * 
+ */
+void WindowManager::simpleBox(const char horizontalChars, 
+                              const char verticalChars, 
+                              const char cornerChars)
+{
+    unsigned int i = 0;
+    unsigned int j = 0;
+
+
+    wmove(baseWinP, 0, 0);
+
+    for(j = 0; j < width(); j++)
+    {
+        waddch(baseWinP, horizontalChars);
+    }
+
+    wmove(baseWinP, (height() - 1), 0);
+
+    for(j = 0; j < width(); j++)
+    {
+        waddch(baseWinP, horizontalChars);
+    }
+
+    wmove(baseWinP, 0, 0);
+
+    for(j = 0; j < height(); j++)
+    {
+        waddch(baseWinP, verticalChars);
+        wmove(baseWinP, j, 0);
+    }
+
+    wmove(baseWinP, 0, (width() - 1));
+
+    for(j = 0; j < height(); j++)
+    {
+        waddch(baseWinP, verticalChars);
+        wmove(baseWinP, j, (width() - 1));
+    }
+
+    // Corners
+    
+    wmove(baseWinP, 0, 0);
+    waddch(baseWinP, cornerChars);
+
+    wmove(baseWinP, 0, (width() - 1));
+    waddch(baseWinP, cornerChars);
+
+    wmove(baseWinP, (height() - 1), 0);
+    waddch(baseWinP, cornerChars);
+
+    wmove(baseWinP, (height() - 1), (width() - 1));
+    waddch(baseWinP, cornerChars);
 }

@@ -10,11 +10,11 @@ class WindowManager
     private:
         WINDOW*                     	baseWinP;
         WindowManager*              	parentP;
-	bool				isUpdateNeeded;
+	    bool				            isUpdateNeeded;
         std::vector<WindowManager*> 	childList;
         std::vector<std::string*>       styleList;
 
-	void updateWindows(bool doRefresh);
+	    bool updateWindows(bool isRefreshNeeded);
         
 
     public:
@@ -28,6 +28,16 @@ class WindowManager
         int width();
         int x();
         int y();
+
+        int cursorX();
+        int cursorY();
+
+        void addChar(const chtype ch);
+        void removeChar();
+        void removeChar(int y, int x);
+
+        void moveCursor(int abs);
+        void moveCursor(int y, int x);
 
 
         WINDOW* getBase();
@@ -58,7 +68,11 @@ class WindowManager
 
 
         void printCenter(std::string msg);
+        void print(std::string msg);
 
+        void simpleBox(const char horizontalChars, 
+                       const char verticalChars, 
+                       const char cornerChars);
 
 };
 
