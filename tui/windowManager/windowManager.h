@@ -74,6 +74,9 @@ class WindowManager
                        const char verticalChars, 
                        const char cornerChars);
 
+        void attributeOn(attr_t attribute);
+        void attributeOff(attr_t attribute);
+
 };
 
 

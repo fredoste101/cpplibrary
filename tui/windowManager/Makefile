@@ -1,4 +1,4 @@
-COMPILER=g++
+COMPILER=g++ -std=c++11
 
 COMPILER_FLAGS=
 

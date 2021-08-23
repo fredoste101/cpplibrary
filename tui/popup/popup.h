@@ -2,8 +2,7 @@
 
 
 #include <string>
-
-#include <ncurses.h>
+#include <stdio.h>
 
 #include "../windowManager/windowManager.h"
 

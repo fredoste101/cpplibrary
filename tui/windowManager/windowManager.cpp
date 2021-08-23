@@ -20,6 +20,7 @@ WindowManager::WindowManager(int posY, int posX, int sizeY, int sizeX)
 WindowManager::WindowManager(WINDOW* baseP)
 {
     baseWinP        = baseP;
+    isUpdateNeeded  = true;
     refresh();
 }
 
@@ -34,6 +35,7 @@ WindowManager::~WindowManager()
         wrefresh(baseWinP);
         
         delwin(baseWinP);
+        refresh();
     }
     else
     {
@@ -41,7 +43,7 @@ WindowManager::~WindowManager()
         endwin();
     }
     
-    refresh();
+    
 
     
 }
@@ -55,9 +57,10 @@ void WindowManager::addStyle()
 
 void WindowManager::updateWindows()
 {
+    wrefresh(baseWinP);
 	if(updateWindows(false))
     {
-        fprintf(stderr, "\nrefresh");
+        wrefresh(baseWinP);
         refresh();
     }	
 }
@@ -65,7 +68,7 @@ void WindowManager::updateWindows()
 
 bool WindowManager::updateWindows(bool isRefreshNeeded)
 {
-
+wrefresh(baseWinP);
 	if(isUpdateNeeded)
 	{
         isUpdateNeeded  = false;
@@ -192,7 +195,21 @@ WINDOW* WindowManager::getBase()
 
 void WindowManager::setBase(WINDOW* baseP)
 {
+    isUpdateNeeded = true;
     baseWinP = baseP;
+}
+
+
+void WindowManager::attributeOn(attr_t attribute)
+{
+    wattron(baseWinP, attribute);
+                    
+}
+
+
+void WindowManager::attributeOff(attr_t attribute)
+{
+    wattroff(baseWinP, attribute);
 }
 
 

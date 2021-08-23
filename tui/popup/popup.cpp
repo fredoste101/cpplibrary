@@ -1,6 +1,5 @@
-#include <stdio.h>
-
 #include "popup.h"
+
 
 void popup(std::string* msgP)
 {
@@ -60,21 +59,18 @@ std::string* popupTextInput(std::string* msgP)
                     winManP->removeChar();
                     inputP->pop_back();
                 }
-                fprintf(stderr, "\nbackspace");
             }
             break;
 
             case KEY_ENTER:
             case '\n':
             {
-                fprintf(stderr, "\nENTER");
                 delete winManP;
                 return inputP;
             }
             break;
 
             default:
-                fprintf(stderr, "\n%ld", ch);
                 inputP->push_back(ch);
                 winManP->addChar(ch);
             break;
@@ -84,7 +80,6 @@ std::string* popupTextInput(std::string* msgP)
     }
     
     
-
     delete winManP;
 
     delete inputP;
